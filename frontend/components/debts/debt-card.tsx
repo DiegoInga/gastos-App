@@ -13,27 +13,36 @@ interface DebtCardProps {
   onEdit: (debt: Debt) => void;
   onDelete: (id: string) => void;
   onViewDetail: (debt: Debt) => void;
+  isSelected?: boolean;
+  onSelectToggle?: (id: string) => void;
 }
 
-export function DebtCard({ debt, onEdit, onDelete, onViewDetail }: DebtCardProps) {
+export function DebtCard({ debt, onEdit, onDelete, onViewDetail, isSelected = false, onSelectToggle }: DebtCardProps) {
   const stats = getDebtStats(debt);
   const isPaid = stats.isPaid;
 
   return (
-    <Card className="overflow-hidden flex flex-col h-full bg-card shadow-sm hover:shadow-md transition-shadow">
-      <div
-        className={cn(
-          "h-1 w-full shrink-0",
-          isPaid ? "bg-green-500" : "bg-emerald-500"
-        )}
-      />
+    <Card className={cn(
+      "overflow-hidden flex flex-col h-full bg-card shadow-sm hover:shadow-md transition-shadow border-t-4",
+      isSelected ? "ring-2 ring-blue-500 border-t-blue-500" : isPaid ? "border-t-green-500" : "border-t-emerald-500"
+    )}>
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between gap-4">
-          <div>
-            <CardTitle className="text-lg leading-tight mb-1.5">{debt.nombre}</CardTitle>
-            <Badge variant="secondary" className="font-normal text-xs">
-              {debt.tipo === "cuotas" ? `${debt.num_cuotas} cuotas` : "Pago directo"}
-            </Badge>
+          <div className="flex gap-2.5">
+            {onSelectToggle && !isPaid && (
+              <input
+                type="checkbox"
+                checked={isSelected}
+                onChange={() => onSelectToggle(debt.id)}
+                className="h-4.5 w-4.5 mt-1.5 shrink-0 rounded border-input bg-background accent-blue-600 cursor-pointer focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              />
+            )}
+            <div>
+              <CardTitle className="text-lg leading-tight mb-1.5">{debt.nombre}</CardTitle>
+              <Badge variant="secondary" className="font-normal text-xs">
+                {debt.tipo === "cuotas" ? `${debt.num_cuotas} cuotas` : "Pago directo"}
+              </Badge>
+            </div>
           </div>
           <div className="flex items-center gap-1 shrink-0 -mr-2 -mt-2">
             <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => onEdit(debt)}>

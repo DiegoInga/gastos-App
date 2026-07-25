@@ -24,6 +24,13 @@ export default function DebtsPage() {
   
   const [searchQuery, setSearchQuery] = useState("");
   const [debtFilter, setDebtFilter] = useState<'todas' | 'activas' | 'pagadas' | 'vencidas'>('todas');
+  const [selectedDebtIds, setSelectedDebtIds] = useState<string[]>([]);
+
+  const handleSelectToggle = (id: string) => {
+    setSelectedDebtIds(prev =>
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
+  };
 
   const fetchDebts = async () => {
     try {
@@ -60,6 +67,7 @@ export default function DebtsPage() {
       if (detailDebt?.id === id) {
         setDetailDebt(null);
       }
+      setSelectedDebtIds(prev => prev.filter(item => item !== id));
       fetchDebts();
     } catch (error) {
       console.error("Error al eliminar deuda:", error);
@@ -216,15 +224,34 @@ export default function DebtsPage() {
             <div className="text-2xl font-bold tracking-tight">{formatCurrency(totalPagado)}</div>
           </CardContent>
         </Card>
-        <Card className="shadow-sm">
+        <Card className={cn("shadow-sm transition-all duration-300", selectedDebtIds.length > 0 && "ring-2 ring-blue-500 bg-blue-50/50 dark:bg-blue-950/20")}>
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-semibold text-muted-foreground">Pago Mensual Total</CardTitle>
+            <CardTitle className="text-sm font-semibold text-muted-foreground">
+              {selectedDebtIds.length > 0 ? "Pago Mensual Seleccionado" : "Pago Mensual Total"}
+            </CardTitle>
             <div className="bg-blue-500/10 p-2 rounded-full">
               <CalendarRange className="h-4 w-4 text-blue-500" />
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold tracking-tight text-blue-500">{formatCurrency(totalCuotaMensual)}</div>
+          <CardContent className="space-y-1">
+            <div className="text-2xl font-bold tracking-tight text-blue-500">
+              {formatCurrency(
+                selectedDebtIds.length > 0
+                  ? activeDebts.filter(d => selectedDebtIds.includes(d.id)).reduce((acc, d) => acc + d.cuota_mensual, 0)
+                  : totalCuotaMensual
+              )}
+            </div>
+            {selectedDebtIds.length > 0 && (
+              <div className="flex items-center justify-between text-xs text-muted-foreground mt-1.5 pt-1 border-t border-blue-100 dark:border-blue-900/50">
+                <span>Total: {formatCurrency(totalCuotaMensual)} ({selectedDebtIds.length} sel.)</span>
+                <button
+                  onClick={() => setSelectedDebtIds([])}
+                  className="text-blue-500 hover:underline font-semibold"
+                >
+                  Limpiar
+                </button>
+              </div>
+            )}
           </CardContent>
         </Card>
         <Card className="shadow-sm">
@@ -316,6 +343,8 @@ export default function DebtsPage() {
                   onEdit={handleEdit} 
                   onDelete={handleDelete} 
                   onViewDetail={handleViewDetail} 
+                  isSelected={selectedDebtIds.includes(debt.id)}
+                  onSelectToggle={handleSelectToggle}
                 />
               ))}
             </div>
@@ -352,6 +381,8 @@ export default function DebtsPage() {
                   onEdit={handleEdit} 
                   onDelete={handleDelete} 
                   onViewDetail={handleViewDetail} 
+                  isSelected={selectedDebtIds.includes(debt.id)}
+                  onSelectToggle={handleSelectToggle}
                 />
               ))}
             </div>
@@ -376,6 +407,8 @@ export default function DebtsPage() {
                 onEdit={handleEdit} 
                 onDelete={handleDelete} 
                 onViewDetail={handleViewDetail} 
+                isSelected={selectedDebtIds.includes(debt.id)}
+                onSelectToggle={handleSelectToggle}
               />
             ))}
           </div>
