@@ -30,12 +30,30 @@ export function DebtCard({ debt, onEdit, onDelete, onViewDetail, isSelected = fa
         <div className="flex items-start justify-between gap-4">
           <div className="flex gap-2.5">
             {onSelectToggle && !isPaid && (
-              <input
-                type="checkbox"
-                checked={isSelected}
-                onChange={() => onSelectToggle(debt.id)}
-                className="h-4.5 w-4.5 mt-1.5 shrink-0 rounded border-input bg-background accent-blue-600 cursor-pointer focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              />
+              <button
+                type="button"
+                onClick={() => onSelectToggle(debt.id)}
+                className={cn(
+                  "h-5 w-5 mt-1 shrink-0 rounded-md border flex items-center justify-center transition-all duration-200 cursor-pointer",
+                  isSelected
+                    ? "bg-blue-600 border-blue-600 text-white shadow-sm shadow-blue-500/30 scale-105"
+                    : "border-border bg-background hover:border-blue-400 hover:bg-blue-500/5 text-transparent"
+                )}
+                aria-label={`Seleccionar ${debt.nombre}`}
+              >
+                <svg
+                  className={cn("h-3.5 w-3.5 stroke-[3] transition-transform duration-200", isSelected ? "scale-100" : "scale-0")}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              </button>
             )}
             <div>
               <CardTitle className="text-lg leading-tight mb-1.5">{debt.nombre}</CardTitle>
