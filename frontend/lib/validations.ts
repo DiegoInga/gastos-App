@@ -47,6 +47,18 @@ export const registerSchema = loginSchema.extend({
   path: ["confirmPassword"],
 });
 
+export const forgotPasswordSchema = z.object({
+  email: z.string().email("Ingresa un email válido"),
+});
+
+export const resetPasswordSchema = z.object({
+  password: z.string().min(6, "Mínimo 6 caracteres"),
+  confirmPassword: z.string().min(6, "Mínimo 6 caracteres"),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Las contraseñas no coinciden",
+  path: ["confirmPassword"],
+});
+
 // ── Debt ─────────────────────────────────────────────────────────────
 export const debtSchema = z.object({
   nombre: z
@@ -74,5 +86,8 @@ export type TransactionFormData = z.infer<typeof transactionSchema>;
 export type MonthlyIncomeFormData = z.infer<typeof monthlyIncomeSchema>;
 export type LoginFormData = z.infer<typeof loginSchema>;
 export type RegisterFormData = z.infer<typeof registerSchema>;
+export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
 export type DebtFormData = z.infer<typeof debtSchema>;
+
 

@@ -79,12 +79,24 @@ export const fixedExpenses = pgTable('fixed_expenses', {
   created_at: timestamp('created_at').defaultNow().notNull(),
 });
 
+export const passwordResetTokens = pgTable('password_reset_tokens', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  user_id: uuid('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  token_hash: text('token_hash').notNull(),
+  expires_at: timestamp('expires_at').notNull(),
+  used: boolean('used').default(false).notNull(),
+  created_at: timestamp('created_at').defaultNow().notNull(),
+});
+
 // ── Relations ────────────────────────────────────────────────────────
 
 export const usersRelations = relations(users, ({ many }) => ({
   debts: many(debts),
   monthlyIncomes: many(monthlyIncome),
   fixedExpenses: many(fixedExpenses),
+  passwordResetTokens: many(passwordResetTokens),
 }));
 
 export const fixedExpensesRelations = relations(fixedExpenses, ({ one }) => ({
@@ -109,3 +121,11 @@ export const monthlyIncomeRelations = relations(monthlyIncome, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+export const passwordResetTokensRelations = relations(passwordResetTokens, ({ one }) => ({
+  user: one(users, {
+    fields: [passwordResetTokens.user_id],
+    references: [users.id],
+  }),
+}));
+

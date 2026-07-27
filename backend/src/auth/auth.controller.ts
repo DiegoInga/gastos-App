@@ -4,6 +4,9 @@ import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { VerifyResetTokenDto } from './dto/verify-reset-token.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
 
@@ -30,6 +33,32 @@ export class AuthController {
     return this.authService.login(loginDto);
   }
 
+  @Post('forgot-password')
+  @ApiOperation({ summary: 'Request password reset link via email' })
+  @ApiBody({ type: ForgotPasswordDto })
+  @ApiResponse({ status: 200, description: 'Reset instructions sent if user exists' })
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(forgotPasswordDto);
+  }
+
+  @Post('verify-reset-token')
+  @ApiOperation({ summary: 'Verify if a password reset token is valid' })
+  @ApiBody({ type: VerifyResetTokenDto })
+  @ApiResponse({ status: 200, description: 'Token is valid' })
+  @ApiResponse({ status: 400, description: 'Token is invalid or expired' })
+  async verifyResetToken(@Body() verifyDto: VerifyResetTokenDto) {
+    return this.authService.verifyResetToken(verifyDto);
+  }
+
+  @Post('reset-password')
+  @ApiOperation({ summary: 'Reset password with a valid token' })
+  @ApiBody({ type: ResetPasswordDto })
+  @ApiResponse({ status: 200, description: 'Password successfully reset' })
+  @ApiResponse({ status: 400, description: 'Token is invalid or expired' })
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    return this.authService.resetPassword(resetPasswordDto);
+  }
+
   @Get('me')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT')
@@ -53,3 +82,4 @@ export class AuthController {
     return this.authService.updateProfile(user.userId, updateProfileDto);
   }
 }
+

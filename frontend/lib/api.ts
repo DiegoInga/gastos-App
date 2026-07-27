@@ -1,4 +1,13 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const getApiUrl = () => {
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    return `${window.location.protocol}//${hostname}:3001`;
+  }
+  return 'http://localhost:3001';
+};
 
 class ApiError extends Error {
   status: number;
@@ -17,7 +26,8 @@ async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> 
     headers.set('Authorization', `Bearer ${token}`);
   }
 
-  const response = await fetch(`${API_URL}${path}`, {
+  const baseUrl = getApiUrl();
+  const response = await fetch(`${baseUrl}${path}`, {
     ...options,
     headers,
   });
@@ -29,6 +39,13 @@ async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> 
   const data = await response.json();
 
   if (!response.ok) {
+    if (response.status === 401 && typeof window !== 'undefined') {
+      localStorage.removeItem('gastos-app-token');
+      document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+      if (!window.location.pathname.startsWith('/login') && !window.location.pathname.startsWith('/reset-password')) {
+        window.location.href = '/login';
+      }
+    }
     const errorMsg = data.message || 'Ocurrió un error inesperado';
     throw new ApiError(Array.isArray(errorMsg) ? errorMsg[0] : errorMsg, response.status);
   }
@@ -77,6 +94,27 @@ export const api = {
       return apiFetch<any>('/auth/profile', {
         method: 'PATCH',
         body: JSON.stringify(data),
+      });
+    },
+
+    async forgotPassword(email: string) {
+      return apiFetch<{ message: string }>('/auth/forgot-password', {
+        method: 'POST',
+        body: JSON.stringify({ email }),
+      });
+    },
+
+    async verifyResetToken(token: string) {
+      return apiFetch<{ valid: boolean }>('/auth/verify-reset-token', {
+        method: 'POST',
+        body: JSON.stringify({ token }),
+      });
+    },
+
+    async resetPassword(token: string, password: string) {
+      return apiFetch<{ message: string }>('/auth/reset-password', {
+        method: 'POST',
+        body: JSON.stringify({ token, password }),
       });
     },
 

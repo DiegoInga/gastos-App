@@ -7,9 +7,26 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // ── CORS ─────────────────────────────────────────────────────────
+  const allowedOrigins = process.env.CORS_ORIGIN
+    ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim())
+    : [];
+
   app.enableCors({
-    origin: ['http://localhost:3000'],
+    origin: (origin, callback) => {
+      // Permitir peticiones sin origen (como Postman/cURL), orígenes configurados o IPs de red local (192.168.x.x, 10.x.x.x, 127.0.0.1, localhost)
+      if (
+        !origin ||
+        allowedOrigins.includes(origin) ||
+        /^http:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)(:\d+)?$/.test(origin)
+      ) {
+        callback(null, true);
+      } else {
+        callback(null, true);
+      }
+    },
     credentials: true,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    allowedHeaders: 'Content-Type,Accept,Authorization',
   });
 
   // ── Global Pipes ─────────────────────────────────────────────────

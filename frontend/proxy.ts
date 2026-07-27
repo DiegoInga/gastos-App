@@ -3,9 +3,11 @@ import { NextResponse, type NextRequest } from "next/server";
 export async function proxy(request: NextRequest) {
   const token = request.cookies.get("token")?.value;
   const isLoginPage = request.nextUrl.pathname.startsWith("/login");
+  const isResetPasswordPage = request.nextUrl.pathname.startsWith("/reset-password");
+  const isPublicPage = isLoginPage || isResetPasswordPage;
 
-  if (!token && !isLoginPage) {
-    // Si no está logueado y no está en login, redirigir a /login
+  if (!token && !isPublicPage) {
+    // Si no está logueado y no está en página pública, redirigir a /login
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
