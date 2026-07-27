@@ -1,12 +1,15 @@
 const getApiUrl = () => {
-  if (process.env.NEXT_PUBLIC_API_URL) {
-    return process.env.NEXT_PUBLIC_API_URL;
-  }
-  if (typeof window !== 'undefined') {
+  let url = process.env.NEXT_PUBLIC_API_URL;
+  if (!url && typeof window !== 'undefined') {
     const hostname = window.location.hostname;
-    return `${window.location.protocol}//${hostname}:3001`;
+    if (hostname === 'localhost' || hostname === '127.0.0.1' || /^192\.168\./.test(hostname) || /^10\./.test(hostname)) {
+      url = `${window.location.protocol}//${hostname}:3001`;
+    }
   }
-  return 'http://localhost:3001';
+  if (!url) {
+    url = 'http://localhost:3001';
+  }
+  return url.trim().replace(/\/+$/, '');
 };
 
 class ApiError extends Error {
@@ -27,7 +30,10 @@ async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> 
   }
 
   const baseUrl = getApiUrl();
-  const response = await fetch(`${baseUrl}${path}`, {
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  const fullUrl = `${baseUrl}${cleanPath}`;
+
+  const response = await fetch(fullUrl, {
     ...options,
     headers,
   });
